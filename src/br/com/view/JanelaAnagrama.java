@@ -8,12 +8,12 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.border.EmptyBorder;
 
+import br.com.anagramas.AnagramModel;
 import br.com.constantes.ViewContantes;
 
 import javax.swing.JTextField;
 import javax.swing.JLabel;
 import java.awt.Font;
-import java.awt.ScrollPane;
 
 import javax.swing.JButton;
 import java.awt.event.ActionListener;
@@ -21,6 +21,8 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Vector;
 import java.awt.event.ActionEvent;
 import javax.swing.JList;
@@ -32,9 +34,11 @@ public class JanelaAnagrama extends JFrame {
 	 */
 	private static final long serialVersionUID = 1L;
 	private JPanel contentPane;
-	private JTextField textField;
+	private JTextField pathFileList;
 	private Vector<String> palavrasEncontradas;
-	private JTextField textField_1;
+	private JTextField pathFileDic;
+	private AnagramModel modelo;
+	private File fileFrases;
 
 	/**
 	 * Launch the application.
@@ -56,6 +60,9 @@ public class JanelaAnagrama extends JFrame {
 	 * Create the frame.
 	 */
 	public JanelaAnagrama() {
+		fileFrases = null;
+		modelo = new AnagramModel();
+
 		palavrasEncontradas = new Vector<>();
 
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -75,36 +82,52 @@ public class JanelaAnagrama extends JFrame {
 		panel.add(lblAnagramas);
 		lblAnagramas.setFont(new Font("Dialog", Font.BOLD, 30));
 
-		textField = new JTextField();
-		textField.setBounds(12, 72, 463, 29);
-		panel.add(textField);
-		textField.setColumns(10);
-		textField.setEditable(false);
+		pathFileList = new JTextField();
+		pathFileList.setBounds(12, 72, 463, 29);
+		panel.add(pathFileList);
+		pathFileList.setColumns(10);
+		pathFileList.setEditable(false);
 
-		final JList list = new JList(); // ANALISAR
-		list.setListData(palavrasEncontradas);
-		list.setBounds(23, 197, 613, 183);
+		final JList listaEncontrados = new JList(); // ANALISAR
+		listaEncontrados.setListData(palavrasEncontradas);
+		listaEncontrados.setBounds(23, 197, 613, 183);
 
-		JScrollPane scrollPane = new JScrollPane(list);
-		scrollPane.setBounds(12, 197, 624, 183);
+		JScrollPane scrollPane = new JScrollPane(listaEncontrados);
+		scrollPane.setBounds(12, 197, 463, 183);
 		panel.add(scrollPane);
 
 		JLabel lblNewLabel = new JLabel("Arquivo para busca de anagramas");
 		lblNewLabel.setBounds(25, 51, 263, 15);
 		panel.add(lblNewLabel);
 
-		textField_1 = new JTextField();
-		textField_1.setEditable(false);
-		textField_1.setColumns(10);
-		textField_1.setBounds(14, 134, 463, 29);
-		panel.add(textField_1);
+		pathFileDic = new JTextField();
+		pathFileDic.setEditable(false);
+		pathFileDic.setColumns(10);
+		pathFileDic.setBounds(14, 134, 463, 29);
+		panel.add(pathFileDic);
 
 		JLabel lblArquivoDicionrio = new JLabel("Arquivo dicionário");
 		lblArquivoDicionrio.setBounds(27, 113, 263, 15);
 		panel.add(lblArquivoDicionrio);
 
-		JButton button = new JButton("Escolher arquivo");
-		button.addActionListener(new ActionListener() {
+		JButton buttonFile1 = new JButton("Escolher arquivo");
+		buttonFile1.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				JFileChooser palavras = new JFileChooser();
+				palavras.setBounds(25, 25, 100, 100);
+				palavras.setDialogTitle(ViewContantes.TITULO_CHOOSER_ENTRADA);
+				int retorno = palavras.showOpenDialog(contentPane);
+				if (retorno == JFileChooser.APPROVE_OPTION) {
+					fileFrases = palavras.getSelectedFile();
+
+				}
+			}
+		});
+		buttonFile1.setBounds(489, 74, 147, 25);
+		panel.add(buttonFile1);
+
+		JButton buttonFile2 = new JButton("Escolher arquivo");
+		buttonFile2.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				JFileChooser palavras = new JFileChooser();
 				palavras.setBounds(25, 25, 100, 100);
@@ -112,15 +135,15 @@ public class JanelaAnagrama extends JFrame {
 				int retorno = palavras.showOpenDialog(contentPane);
 				if (retorno == JFileChooser.APPROVE_OPTION) {
 					File arquivoSelecionado = palavras.getSelectedFile();
-					textField_1.setText(arquivoSelecionado.getPath());
+					pathFileDic.setText(arquivoSelecionado.getPath());
 					try (BufferedReader reader = new BufferedReader(new FileReader(arquivoSelecionado));) {
-						palavrasEncontradas = new Vector<>();
 						String linha;
+						List<String> frasesDic = new ArrayList<>();
 						while ((linha = reader.readLine()) != null) {
-							palavrasEncontradas.add(linha);
-							list.setListData(palavrasEncontradas);
+							frasesDic.add(linha);
 						}
-						//Adiciona no modelo
+						modelo.setWords(frasesDic.iterator());
+						// Adiciona no modelo
 					} catch (IOException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
@@ -128,40 +151,18 @@ public class JanelaAnagrama extends JFrame {
 				}
 			}
 		});
-		button.setBounds(489, 136, 147, 25);
-		panel.add(button);
-
-		JButton btnNewButton = new JButton(ViewContantes.TITULO_BUTTON_ARQUIVO);
-		btnNewButton.addActionListener(new ActionListener() {
+		buttonFile2.setBounds(489, 136, 147, 25);
+		panel.add(buttonFile2);
+		
+		JButton btnBuscarAnagramas = new JButton("Buscar anagramas");
+		btnBuscarAnagramas.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
-				JFileChooser palavras = new JFileChooser();
-				palavras.setBounds(25, 25, 100, 100);
-				palavras.setDialogTitle(ViewContantes.TITULO_CHOOSER_ENTRADA);
-				int retorno = palavras.showOpenDialog(contentPane);
-				if (retorno == JFileChooser.APPROVE_OPTION) {
-					File arquivoSelecionado = palavras.getSelectedFile();
-					textField.setText(arquivoSelecionado.getPath());
-					try (BufferedReader reader = new BufferedReader(new FileReader(arquivoSelecionado));) {
-						palavrasEncontradas = new Vector<>();
-						String linha;
-						while ((linha = reader.readLine()) != null) {
-							palavrasEncontradas.add(linha);
-							list.setListData(palavrasEncontradas);
-						}
-					} catch (IOException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
+				if(fileFrases != null) {
+					
 				}
-//				palavras.setFileSelectionMode(JFileChooser.FILES_ONLY);
-//				String[] extension = new String[1];
-//				extension[0] = ".java";
-//				FileNameExtensionFilter file = new FileNameExtensionFilter("Arquivo txt", extension);
-//				palavras.setFileFilter(file);
 			}
 		});
-		btnNewButton.setBounds(487, 74, 147, 25);
-		panel.add(btnNewButton);
-
+		btnBuscarAnagramas.setBounds(487, 262, 164, 25);
+		panel.add(btnBuscarAnagramas);
 	}
 }
