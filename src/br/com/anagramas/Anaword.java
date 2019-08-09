@@ -14,8 +14,8 @@ import java.util.*;
 
 public class Anaword implements Comparable<Anaword> {
 
-	protected String myWord;
-	protected String mySortedWord;
+	public String myWord;
+	public String mySortedWord;
 
 	/**
 	 * construct an empty "" Anaword
